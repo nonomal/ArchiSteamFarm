@@ -170,18 +170,6 @@ public static class Utilities {
 	}
 
 	[PublicAPI]
-	public static bool IsClientErrorCode(this HttpStatusCode statusCode) => statusCode is >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError;
-
-	[PublicAPI]
-	public static bool IsRedirectionCode(this HttpStatusCode statusCode) => statusCode is >= HttpStatusCode.Ambiguous and < HttpStatusCode.BadRequest;
-
-	[PublicAPI]
-	public static bool IsServerErrorCode(this HttpStatusCode statusCode) => statusCode is >= HttpStatusCode.InternalServerError and < (HttpStatusCode) 600;
-
-	[PublicAPI]
-	public static bool IsSuccessCode(this HttpStatusCode statusCode) => statusCode is >= HttpStatusCode.OK and < HttpStatusCode.Ambiguous;
-
-	[PublicAPI]
 	public static bool IsValidCdKey(string key) {
 		ArgumentException.ThrowIfNullOrEmpty(key);
 
@@ -313,7 +301,7 @@ public static class Utilities {
 		// Now extract the zip file to entirely new location, this decreases chance of corruptions if user kills the process during this stage
 		string updateDirectory = Path.Combine(targetDirectory, SharedInfo.UpdateDirectoryNew);
 
-		zipArchive.ExtractToDirectory(updateDirectory, true);
+		await zipArchive.ExtractToDirectoryAsync(updateDirectory, true).ConfigureAwait(false);
 
 		// Now, critical section begins, we're going to move all files from target directory to a backup directory
 		string backupDirectory = Path.Combine(targetDirectory, SharedInfo.UpdateDirectoryOld);
@@ -525,4 +513,20 @@ public static class Utilities {
 
 		return prefixes.Any(prefix => !string.IsNullOrEmpty(prefix) && (directory.Length > prefix.Length) && DirectorySeparators.Contains(directory[prefix.Length]) && directory.StartsWith(prefix, StringComparison.Ordinal));
 	}
+
+#pragma warning disable CA1034 // False positive, there's no other way we can declare this block
+	extension(HttpStatusCode statusCode) {
+		[PublicAPI]
+		public bool IsClientErrorCode() => statusCode is >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError;
+
+		[PublicAPI]
+		public bool IsRedirectionCode() => statusCode is >= HttpStatusCode.Ambiguous and < HttpStatusCode.BadRequest;
+
+		[PublicAPI]
+		public bool IsServerErrorCode() => statusCode is >= HttpStatusCode.InternalServerError and < (HttpStatusCode) 600;
+
+		[PublicAPI]
+		public bool IsSuccessCode() => statusCode is >= HttpStatusCode.OK and < HttpStatusCode.Ambiguous;
+	}
+#pragma warning restore CA1034 // False positive, there's no other way we can declare this block
 }
