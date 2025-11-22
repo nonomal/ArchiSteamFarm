@@ -21,7 +21,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Specialized;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -33,9 +34,10 @@ namespace ArchiSteamFarm.IPC.Requests;
 public sealed class BotGamesToRedeemInBackgroundRequest {
 	[Description("A string-string map that maps cd-key to redeem (key) to its name (value). Key in the map must be a valid and unique Steam cd-key. Value in the map must be a non-null and non-empty name of the key (e.g. game's name, but can be anything)")]
 	[JsonInclude]
+	[JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]
 	[JsonRequired]
 	[Required]
-	public OrderedDictionary GamesToRedeemInBackground { get; private init; } = new();
+	public OrderedDictionary<string, string> GamesToRedeemInBackground { get; private init; } = new(StringComparer.OrdinalIgnoreCase);
 
 	[JsonConstructor]
 	private BotGamesToRedeemInBackgroundRequest() { }
